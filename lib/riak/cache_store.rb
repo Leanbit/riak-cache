@@ -36,6 +36,18 @@ module Riak
       end
     end
 
+    # Increments an already existing integer value that is stored in the cache.
+    # If the key is not found nothing is done.
+    def increment(name, amount = 1, options = nil)
+      modify_value(name, amount, options)
+    end
+
+    # Decrements an already existing integer value that is stored in the cache.
+    # If the key is not found nothing is done.
+    def decrement(name, amount = 1, options = nil)
+      modify_value(name, -amount, options)
+    end
+
     protected
     def set_bucket_defaults
       begin
@@ -68,6 +80,11 @@ module Riak
 
     def delete_entry(key, options={})
       bucket.delete(key)
+    end
+
+    def modify_value(name, amount, options)
+      cached_entry = read_entry(name, options)
+      write_entry(name, ActiveSupport::Cache::Entry.new(cached_entry.value + amount)) rescue nil
     end
   end
 end
