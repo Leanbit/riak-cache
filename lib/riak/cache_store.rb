@@ -80,11 +80,20 @@ module Riak
 
     def delete_entry(key, options={})
       bucket.delete(key)
+      nil
     end
 
     def modify_value(name, amount, options)
-      cached_entry = read_entry(name, options)
-      write_entry(name, ActiveSupport::Cache::Entry.new(cached_entry.value + amount)) rescue nil
+      begin
+        cached_entry = read_entry(name, options)
+        new_value = cached_entry.value + amount
+        cache_entry = ActiveSupport::Cache::Entry.new(cached_entry.value + amount)
+        write_entry(name, cache_entry) rescue nil
+        new_value
+      rescue
+        nil
+      end
     end
+
   end
 end
